@@ -193,14 +193,15 @@ else:
     if tl.empty:
         st.warning("No valid start/end dates to show on the timeline for the current selection.")
     else:
+        tl["bill_label"] = tl["state"] + " — " + tl["bill_number"].astype(str)
         color_map = {"Completed": "#2ca02c", "Not Completed": "#d62728"}
         fig_tl = px.timeline(
             tl,
             x_start="start_date",
             x_end="end_date",
-            y="bill_number",
+            y="bill_label",
             color="completion_label",
-            hover_data=["state", "title", "last_action", "dem_sponsors", "rep_sponsors"],
+            hover_data=[], 
             color_discrete_map=color_map,
         )
         fig_tl.update_yaxes(autorange="reversed")
@@ -213,25 +214,14 @@ st.markdown("---")
 # Interactive explorer table
 # -------------------------
 st.subheader("Bill Explorer")
-st.dataframe(
-    filtered[[
-        "state", "bill_number", "title", "dem_sponsors", "rep_sponsors",
-        "start_date", "end_date", "last_action_date", "completion_label", "last_action"
-    ]].sort_values(["state", "start_date"]),
-    use_container_width=True
-)
+
+# Bill Explorer directly tied to filters
+explorer_df = filtered[[
+    "state", "bill_number", "title", "dem_sponsors", "rep_sponsors",
+    "start_date", "end_date", "last_action_date", "completion_label", "last_action"
+]].sort_values(["state", "start_date"])
+
+st.dataframe(explorer_df, use_container_width=True)
 
 csv = filtered.to_csv(index=False)
 st.download_button("Download filtered CSV", csv, "filtered_bills.csv", "text/csv")
-
-# -------------------------
-# Notes
-# -------------------------
-#st.markdown(
-#    """
-#**Notes**
-#- Requires: `streamlit`, `pandas`, `plotly`, `pywaffle`, `matplotlib`.
-#- Install with `pip install streamlit pandas plotly pywaffle matplotlib`.
-#- If your `bills_raw/` folder is present, the app will try to derive more accurate start/end dates from the raw JSONs.
-#"""
-#)
