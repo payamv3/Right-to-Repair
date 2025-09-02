@@ -141,15 +141,18 @@ filtered = df[
     df["completed"].isin(comp_values)
 ].copy()
 
+# ✅ One slice for both table & timeline
+view_df = filtered.dropna(subset=["start_date", "end_date"]).copy()
+
 # -------------------------
 # Main page: title, KPIs
 # -------------------------
 st.title("Right to Repair Bills — Dashboard")
 
 col1, col2, col3 = st.columns(3)
-col1.metric("Total Bills", len(filtered))
-col2.metric("Completed", int(filtered["completed"].sum()))
-col3.metric("Not Completed", int(len(filtered) - filtered["completed"].sum()))
+col1.metric("Total Bills", len(view_df))
+col2.metric("Completed", int(view_df["completed"].sum()))
+col3.metric("Not Completed", int(len(view_df) - view_df["completed"].sum()))
 
 st.markdown("---")
 
@@ -157,8 +160,8 @@ st.markdown("---")
 # Waffle chart: Dem (blue) vs GOP (red)
 # -------------------------
 st.subheader("Sponsor Breakdown — Democrats (Blue) vs Republicans (Red)")
-dem_total = int(filtered["dem_sponsors"].sum())
-rep_total = int(filtered["rep_sponsors"].sum())
+dem_total = int(view_df["dem_sponsors"].sum())
+rep_total = int(view_df["rep_sponsors"].sum())
 
 if dem_total + rep_total > 0:
     party_data = {"Democrats": dem_total, "Republicans": rep_total}
@@ -186,30 +189,23 @@ st.markdown("---")
 # -------------------------
 st.subheader("Bill Timelines (start → last action)")
 
-if filtered.empty:
+if view_df.empty:
     st.warning("No bills match the current filters.")
 else:
-    tl = filtered.dropna(subset=["start_date", "end_date"]).copy()
-    if tl.empty:
-        st.warning("No valid start/end dates to show on the timeline for the current selection.")
-    else:
-        tl["bill_label"] = tl["state"] + " — " + tl["bill_number"].astype(str)
-        color_map = {"Completed": "#2ca02c", "Not Completed": "#d62728"}
-        fig_tl = px.timeline(
-            tl,
-            x_start="start_date",
-            x_end="end_date",
-            y="bill_label",
-            color="completion_label",
-            color_discrete_map=color_map,
-        )
-        fig_tl.update_yaxes(autorange="reversed")
-        fig_tl.update_layout(legend_title_text="Completion")
-
-        # Disable all hover tooltips
-        fig_tl.update_traces(hoverinfo="skip", hovertemplate=None)
-
-        st.plotly_chart(fig_tl, use_container_width=True)
+    view_df["bill_label"] = view_df["state"] + " — " + view_df["bill_number"].astype(str)
+    color_map = {"Completed": "#2ca02c", "Not Completed": "#d62728"}
+    fig_tl = px.timeline(
+        view_df,
+        x_start="start_date",
+        x_end="end_date",
+        y="bill_label",
+        color="completion_label",
+        color_discrete_map=color_map,
+    )
+    fig_tl.update_yaxes(autorange="reversed")
+    fig_tl.update_layout(legend_title_text="Completion")
+    fig_tl.update_traces(hoverinfo="skip", hovertemplate=None)
+    st.plotly_chart(fig_tl, use_container_width=True)
 
 st.markdown("---")
 
@@ -218,13 +214,12 @@ st.markdown("---")
 # -------------------------
 st.subheader("Bill Explorer")
 
-# Bill Explorer tied to current filters
-explorer_df = filtered[[
+explorer_df = view_df[[
     "state", "bill_number", "title", "dem_sponsors", "rep_sponsors",
     "start_date", "end_date", "last_action_date", "completion_label", "last_action"
 ]].sort_values(["state", "start_date"])
 
 st.dataframe(explorer_df, use_container_width=True)
 
-csv = filtered.to_csv(index=False)
+csv = view_df.to_csv(index=False)
 st.download_button("Download filtered CSV", csv, "filtered_bills.csv", "text/csv")
