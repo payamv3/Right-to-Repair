@@ -227,11 +227,11 @@ st.download_button("Download filtered CSV", csv, "filtered_bills.csv", "text/csv
 # -------------------------
 # Notes
 # -------------------------
-st.markdown(
-    """
-**Notes**
-- Requires: `streamlit`, `pandas`, `plotly`, `pywaffle`, `matplotlib`.
-- Install with `pip install streamlit pandas plotly pywaffle matplotlib`.
-- If your `bills_raw/` folder is present, the app will try to derive more accurate start/end dates from the raw JSONs.
-"""
-)
+#st.markdown(
+#    """
+#**Notes**
+#- Requires: `streamlit`, `pandas`, `plotly`, `pywaffle`, `matplotlib`.
+#- Install with `pip install streamlit pandas plotly pywaffle matplotlib`.
+#- If your `bills_raw/` folder is present, the app will try to derive more accurate start/end dates from the raw JSONs.
+#"""
+#)
