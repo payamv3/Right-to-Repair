@@ -186,18 +186,36 @@ st.subheader("Bill Timelines (start → last action)")
 if filtered.empty:
     st.warning("No bills match the current filters.")
 else:
-    # FIXED: Use the same filtered dataframe without dropping any rows
     tl = filtered.copy()
+    tl["bill_label"] = tl["state"] + " — " + tl["bill_number"].astype(str)
     
-    # Add debug info in sidebar (optional - can be removed)
+    # Debug: Show exact data going to Plotly
     with st.sidebar:
         st.markdown("### Debug Info")
         st.write(f"Filtered bills: {len(filtered)}")
         st.write(f"Timeline bills: {len(tl)}")
-        st.write(f"NaT in start_date: {tl['start_date'].isna().sum()}")
-        st.write(f"NaT in end_date: {tl['end_date'].isna().sum()}")
+        
+        # Show H5169 specifically
+        h5169 = tl[tl["bill_number"] == "H5169"]
+        if not h5169.empty:
+            st.write("H5169 data:")
+            row = h5169.iloc[0]
+            st.write(f"State: {row['state']}")
+            st.write(f"Bill: {row['bill_number']}")
+            st.write(f"Label: {row['bill_label']}")
+            st.write(f"Start: {row['start_date']} (type: {type(row['start_date'])})")
+            st.write(f"End: {row['end_date']} (type: {type(row['end_date'])})")
+            st.write(f"Completion: {row['completion_label']}")
+        
+        # Show data types
+        st.write("Data types:")
+        st.write(f"start_date: {tl['start_date'].dtype}")
+        st.write(f"end_date: {tl['end_date'].dtype}")
     
-    tl["bill_label"] = tl["state"] + " — " + tl["bill_number"].astype(str)
+    # Show raw data for inspection
+    st.subheader("Raw Timeline Data (first 10 rows)")
+    st.dataframe(tl[["bill_label", "start_date", "end_date", "completion_label"]].head(10))
+    
     color_map = {"Completed": "#2ca02c", "Not Completed": "#d62728"}
     fig_tl = px.timeline(
         tl,
