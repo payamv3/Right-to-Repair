@@ -201,11 +201,14 @@ else:
             x_end="end_date",
             y="bill_label",
             color="completion_label",
-            hover_data=[], 
             color_discrete_map=color_map,
         )
         fig_tl.update_yaxes(autorange="reversed")
         fig_tl.update_layout(legend_title_text="Completion")
+
+        # Disable all hover tooltips
+        fig_tl.update_traces(hoverinfo="skip", hovertemplate=None)
+
         st.plotly_chart(fig_tl, use_container_width=True)
 
 st.markdown("---")
@@ -215,7 +218,7 @@ st.markdown("---")
 # -------------------------
 st.subheader("Bill Explorer")
 
-# Bill Explorer directly tied to filters
+# Bill Explorer tied to current filters
 explorer_df = filtered[[
     "state", "bill_number", "title", "dem_sponsors", "rep_sponsors",
     "start_date", "end_date", "last_action_date", "completion_label", "last_action"
